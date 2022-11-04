@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "${modId}",
+  "version": "${version}",
+  "name": "${modName}",
+  "description": "${modDescription}",
+  "authors": [
+    "${modAuthor}"
+  ],
+  "contact": {
+    "homepage": "https://almostreliable.com/",
+    "sources": "https://github.com/${githubUser}/${githubRepo}"
+  },
+  "license": "${license}",
+  "icon": "assets/${modId}/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.github.eterdelta.crittersandcompanions.CrittersAndCompanions"
+    ],
+    "client": [
+      "com.github.eterdelta.crittersandcompanions.CrittersAndCompanions"
+    ]
+  },
+  "mixins": [
+    "crittersandcompanions.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=${minecraftVersion}",
+    "java": ">=17"
+  }
+}

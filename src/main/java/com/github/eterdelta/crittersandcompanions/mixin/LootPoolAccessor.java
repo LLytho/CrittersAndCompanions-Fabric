@@ -6,6 +6,7 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface LootPoolAccessor {
 
     @Invoker("<init>")
-    static LootPool make(LootPoolEntryContainer[] entries, LootItemCondition[] conditions, LootItemFunction[] functions, NumberProvider rolls, NumberProvider bonusRolls, String name) {
+    static LootPool make(LootPoolEntryContainer[] entries, LootItemCondition[] conditions, LootItemFunction[] functions, NumberProvider rolls, NumberProvider bonusRolls) {
         throw new IllegalStateException();
     }
 
@@ -25,4 +26,8 @@ public interface LootPoolAccessor {
 
     @Accessor
     LootItemFunction[] getFunctions();
+
+    @Accessor
+    @Mutable
+    void setEntries(LootPoolEntryContainer[] entries);
 }

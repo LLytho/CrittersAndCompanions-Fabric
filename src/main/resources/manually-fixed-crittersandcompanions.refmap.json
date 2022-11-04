@@ -1,0 +1,70 @@
+{
+  "mappings": {
+    "com/github/eterdelta/crittersandcompanions/mixin/OcelotMixin": {
+      "isFood(Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/class_3701;method_6481(Lnet/minecraft/class_1799;)Z",
+      "registerGoals()V": "Lnet/minecraft/class_3701;method_5959()V",
+      "net/minecraft/world/entity/animal/Ocelot.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_3701;field_16299:Lnet/minecraft/class_1856;"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/LootTableBuilderAccessor": {
+      "pools": "field_949:Ljava/util/List;"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/ClientPacketListenerMixin": {
+      "handleAddMob(Lnet/minecraft/network/protocol/game/ClientboundAddMobPacket;)V": "Lnet/minecraft/class_634;method_11138(Lnet/minecraft/class_2610;)V"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/CatMixin": {
+      "net/minecraft/world/entity/animal/Cat.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_1451;field_6809:Lnet/minecraft/class_1856;",
+      "isFood(Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/class_1451;method_6481(Lnet/minecraft/class_1799;)Z",
+      "registerGoals()V": "Lnet/minecraft/class_1451;method_5959()V"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/NearestAttackableTargetGoalMixin": {
+      "<init>(Lnet/minecraft/world/entity/Mob;Ljava/lang/Class;IZZLjava/util/function/Predicate;)V": "Lnet/minecraft/class_1400;<init>(Lnet/minecraft/class_1308;Ljava/lang/Class;IZZLjava/util/function/Predicate;)V"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/DrownedMixin": {
+      "finalizeSpawn": "Lnet/minecraft/class_1551;method_5943(Lnet/minecraft/class_5425;Lnet/minecraft/class_1266;Lnet/minecraft/class_3730;Lnet/minecraft/class_1315;Lnet/minecraft/class_2487;)Lnet/minecraft/class_1315;"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/LootPoolAccessor": {
+      "entries": "field_953:[Lnet/minecraft/class_79;",
+      "functions": "field_956:[Lnet/minecraft/class_117;",
+      "conditions": "field_954:[Lnet/minecraft/class_5341;",
+      "<init>": "<init>"
+    },
+    "com/github/eterdelta/crittersandcompanions/mixin/LivingEntityMixin": {
+      "travel(Lnet/minecraft/world/phys/Vec3;)V": "Lnet/minecraft/class_1309;method_6091(Lnet/minecraft/class_243;)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "com/github/eterdelta/crittersandcompanions/mixin/OcelotMixin": {
+        "isFood(Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/class_3701;method_6481(Lnet/minecraft/class_1799;)Z",
+        "registerGoals()V": "Lnet/minecraft/class_3701;method_5959()V",
+        "net/minecraft/world/entity/animal/Ocelot.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_3701;field_16299:Lnet/minecraft/class_1856;"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/LootTableBuilderAccessor": {
+        "pools": "field_949:Ljava/util/List;"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/ClientPacketListenerMixin": {
+        "handleAddMob(Lnet/minecraft/network/protocol/game/ClientboundAddMobPacket;)V": "Lnet/minecraft/class_634;method_11138(Lnet/minecraft/class_2610;)V"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/CatMixin": {
+        "net/minecraft/world/entity/animal/Cat.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_1451;field_6809:Lnet/minecraft/class_1856;",
+        "isFood(Lnet/minecraft/world/item/ItemStack;)Z": "Lnet/minecraft/class_1451;method_6481(Lnet/minecraft/class_1799;)Z",
+        "registerGoals()V": "Lnet/minecraft/class_1451;method_5959()V"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/NearestAttackableTargetGoalMixin": {
+        "<init>(Lnet/minecraft/world/entity/Mob;Ljava/lang/Class;IZZLjava/util/function/Predicate;)V": "Lnet/minecraft/class_1400;<init>(Lnet/minecraft/class_1308;Ljava/lang/Class;IZZLjava/util/function/Predicate;)V"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/DrownedMixin": {
+        "finalizeSpawn": "Lnet/minecraft/class_1551;method_5943(Lnet/minecraft/class_5425;Lnet/minecraft/class_1266;Lnet/minecraft/class_3730;Lnet/minecraft/class_1315;Lnet/minecraft/class_2487;)Lnet/minecraft/class_1315;"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/LootPoolAccessor": {
+        "entries": "field_953:[Lnet/minecraft/class_79;",
+        "functions": "field_956:[Lnet/minecraft/class_117;",
+        "conditions": "field_954:[Lnet/minecraft/class_5341;",
+        "<init>": "<init>"
+      },
+      "com/github/eterdelta/crittersandcompanions/mixin/LivingEntityMixin": {
+        "travel(Lnet/minecraft/world/phys/Vec3;)V": "Lnet/minecraft/class_1309;method_6091(Lnet/minecraft/class_243;)V"
+      }
+    }
+  }
+}
