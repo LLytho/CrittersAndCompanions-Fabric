@@ -1,146 +1,56 @@
 package com.github.eterdelta.crittersandcompanions.handler;
 
-import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
 import com.github.eterdelta.crittersandcompanions.entity.*;
 import com.github.eterdelta.crittersandcompanions.registry.CACEntities;
-import com.github.eterdelta.crittersandcompanions.registry.CACItems;
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BiomeTags;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.MobSpawnType;
+import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+import net.fabricmc.fabric.mixin.object.builder.SpawnRestrictionAccessor;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.WaterAnimal;
-import net.minecraft.world.entity.monster.Drowned;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.JsonCodecProvider;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.common.world.ForgeBiomeModifiers;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.entity.living.LivingSpawnEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-@Mod.EventBusSubscriber(modid = CrittersAndCompanions.MODID)
 public class SpawnHandler {
 
-    @SubscribeEvent
-    public static void onLivingCheckSpawn(LivingSpawnEvent.CheckSpawn event) {
-        if (event.getEntity() instanceof Drowned drowned && event.getSpawnReason() == MobSpawnType.NATURAL && drowned.getRandom().nextFloat() <= 0.05F) {
-            drowned.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(CACItems.CLAM.get()));
-        }
+    public static void onLivingCheckSpawn() {
+        // handled in DrownedMixin
     }
 
-    public static void datagenBiomeModifiers(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
+    public static void registerBiomeModifications() {
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.RIVER), MobCategory.WATER_CREATURE, CACEntities.OTTER.get(), 2, 3, 5);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.RIVER), MobCategory.WATER_CREATURE, CACEntities.KOI_FISH.get(), 4, 2, 5);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.RIVER), MobCategory.AMBIENT, CACEntities.DRAGONFLY.get(), 6, 1, 1);
 
-        RegistryAccess registryAccess = RegistryAccess.builtinCopy();
-        Registry<Biome> registry = registryAccess.registryOrThrow(Registry.BIOME_REGISTRY);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.OCEAN, Biomes.DEEP_OCEAN), MobCategory.WATER_CREATURE, CACEntities.SEA_BUNNY.get(), 32, 1, 2);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.OCEAN, Biomes.DEEP_OCEAN), MobCategory.WATER_CREATURE, CACEntities.DUMBO_OCTOPUS.get(), 4, 1, 1);
 
-        Map<ResourceLocation, BiomeModifier> modifierMap = new HashMap<>();
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.LUKEWARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN), MobCategory.WATER_CREATURE, CACEntities.SEA_BUNNY.get(), 32, 1, 3);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.LUKEWARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN), MobCategory.WATER_CREATURE, CACEntities.DUMBO_OCTOPUS.get(), 4, 1, 1);
 
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_river_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.RIVER),
-                        new MobSpawnSettings.SpawnerData(CACEntities.OTTER.get(), 2, 3, 5),
-                        new MobSpawnSettings.SpawnerData(CACEntities.KOI_FISH.get(), 4, 2, 5),
-                        new MobSpawnSettings.SpawnerData(CACEntities.DRAGONFLY.get(), 6, 1, 1)
-                )
-        );
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.WARM_OCEAN), MobCategory.WATER_CREATURE, CACEntities.SEA_BUNNY.get(), 64, 1, 4);
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.WARM_OCEAN), MobCategory.WATER_CREATURE, CACEntities.DUMBO_OCTOPUS.get(), 4, 1, 1);
 
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_oceans_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.OCEAN, Biomes.DEEP_OCEAN),
-                        new MobSpawnSettings.SpawnerData(CACEntities.SEA_BUNNY.get(), 32, 1, 2),
-                        new MobSpawnSettings.SpawnerData(CACEntities.DUMBO_OCTOPUS.get(), 4, 1, 1)
-                )
-        );
+        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.BIRCH_FOREST, Biomes.FOREST), MobCategory.CREATURE, CACEntities.FERRET.get(), 3, 2, 3);
 
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_lukewarm_oceans_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.LUKEWARM_OCEAN, Biomes.DEEP_LUKEWARM_OCEAN),
-                        new MobSpawnSettings.SpawnerData(CACEntities.SEA_BUNNY.get(), 32, 1, 3),
-                        new MobSpawnSettings.SpawnerData(CACEntities.DUMBO_OCTOPUS.get(), 6, 1, 1)
-                )
-        );
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.BiomeCategory.FOREST), MobCategory.AMBIENT, CACEntities.LEAF_INSECT.get(), 10, 1, 1);
 
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_warm_ocean_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.WARM_OCEAN),
-                        new MobSpawnSettings.SpawnerData(CACEntities.SEA_BUNNY.get(), 64, 1, 4),
-                        new MobSpawnSettings.SpawnerData(CACEntities.DUMBO_OCTOPUS.get(), 8, 1, 1)
-                )
-        );
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.BiomeCategory.JUNGLE), MobCategory.AMBIENT, CACEntities.LEAF_INSECT.get(), 8, 1, 1);
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.BiomeCategory.JUNGLE), MobCategory.CREATURE, CACEntities.RED_PANDA.get(), 6, 1, 2);
 
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_forests_spawns"),
-                createSpawnModifier(registry.getOrCreateTag(BiomeTags.IS_FOREST),
-                        new MobSpawnSettings.SpawnerData(CACEntities.LEAF_INSECT.get(), 12, 1, 1),
-                        new MobSpawnSettings.SpawnerData(CACEntities.FERRET.get(), 3, 2, 3)
-                )
-        );
-
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_jungles_spawns"),
-                createSpawnModifier(registry.getOrCreateTag(BiomeTags.IS_JUNGLE),
-                        new MobSpawnSettings.SpawnerData(CACEntities.LEAF_INSECT.get(), 12, 1, 1),
-                        new MobSpawnSettings.SpawnerData(CACEntities.RED_PANDA.get(), 8, 1, 2)
-                )
-        );
-
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_plains_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.PLAINS, Biomes.SUNFLOWER_PLAINS),
-                        new MobSpawnSettings.SpawnerData(CACEntities.FERRET.get(), 4, 2, 3)
-                )
-        );
-
-        modifierMap.put(new ResourceLocation(CrittersAndCompanions.MODID, "add_snowy_plains_spawns"),
-                createSpawnModifier(getBiomeHolderSet(registry, Biomes.SNOWY_PLAINS),
-                        new MobSpawnSettings.SpawnerData(CACEntities.SHIMA_ENAGA.get(), 3, 2, 3)
-                )
-        );
-
-        final RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE, registryAccess);
-
-        generator.addProvider(event.includeServer(), JsonCodecProvider.forDatapackRegistry(
-                generator, existingFileHelper, CrittersAndCompanions.MODID, ops, ForgeRegistries.Keys.BIOME_MODIFIERS, modifierMap));
-    }
-
-    @SafeVarargs
-    public static HolderSet<Biome> getBiomeHolderSet(Registry<Biome> registry, ResourceKey<Biome>... biomes) {
-        return HolderSet.direct(Arrays.stream(biomes).map(registry::getHolderOrThrow).toList());
-    }
-
-    public static BiomeModifier createSpawnModifier(HolderSet<Biome> biomes, MobSpawnSettings.SpawnerData... spawnerData) {
-        return (spawnerData.length == 1)
-                ? ForgeBiomeModifiers.AddSpawnsBiomeModifier.singleSpawn(biomes, spawnerData[0])
-                : new ForgeBiomeModifiers.AddSpawnsBiomeModifier(biomes, Arrays.stream(spawnerData).toList());
+        BiomeModifications.addSpawn(BiomeSelectors.categories(Biome.BiomeCategory.PLAINS), MobCategory.CREATURE, CACEntities.FERRET.get(), 3, 2, 3);
     }
 
     public static void registerSpawnPlacements() {
-        SpawnPlacements.register(CACEntities.OTTER.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, OtterEntity::checkOtterSpawnRules);
-        SpawnPlacements.register(CACEntities.KOI_FISH.get(), SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WaterAnimal::checkSurfaceWaterAnimalSpawnRules);
-        SpawnPlacements.register(CACEntities.DRAGONFLY.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING, DragonflyEntity::checkDragonflySpawnRules);
-        SpawnPlacements.register(CACEntities.SEA_BUNNY.get(), SpawnPlacements.Type.create("ON_WATER_GROUND",
-                ((levelReader, blockPos, entityType) -> levelReader.getFluidState(blockPos).is(FluidTags.WATER) && levelReader.getBlockState(blockPos.below()).isFaceSturdy(levelReader, blockPos.below(), Direction.UP))), Heightmap.Types.OCEAN_FLOOR, SeaBunnyEntity::checkSeaBunnySpawnRules);
-        SpawnPlacements.register(CACEntities.FERRET.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
-        SpawnPlacements.register(CACEntities.DUMBO_OCTOPUS.get(), SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, DumboOctopusEntity::checkDumboOctopusSpawnRules);
-        SpawnPlacements.register(CACEntities.LEAF_INSECT.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING, LeafInsectEntity::checkLeafInsectSpawnRules);
-        SpawnPlacements.register(CACEntities.RED_PANDA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.OTTER.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, OtterEntity::checkOtterSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.KOI_FISH.get(), SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, WaterAnimal::checkSurfaceWaterAnimalSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.DRAGONFLY.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING, DragonflyEntity::checkDragonflySpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.SEA_BUNNY.get(), SpawnPlacements.Type.IN_WATER, Heightmap.Types.OCEAN_FLOOR, SeaBunnyEntity::checkSeaBunnySpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.FERRET.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.DUMBO_OCTOPUS.get(), SpawnPlacements.Type.IN_WATER, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, DumboOctopusEntity::checkDumboOctopusSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.LEAF_INSECT.get(), SpawnPlacements.Type.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING, LeafInsectEntity::checkLeafInsectSpawnRules);
+        SpawnRestrictionAccessor.callRegister(CACEntities.RED_PANDA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Animal::checkAnimalSpawnRules);
     }
 }

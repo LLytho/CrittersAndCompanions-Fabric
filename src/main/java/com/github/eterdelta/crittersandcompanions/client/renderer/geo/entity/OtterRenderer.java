@@ -12,9 +12,8 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib3.geo.render.built.GeoBone;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
-public class OtterRenderer extends GeoEntityRenderer<OtterEntity> {
+public class OtterRenderer extends RenderFixHelper<OtterEntity> {
     public OtterRenderer(EntityRendererProvider.Context context) {
         super(context, new OtterModel());
     }

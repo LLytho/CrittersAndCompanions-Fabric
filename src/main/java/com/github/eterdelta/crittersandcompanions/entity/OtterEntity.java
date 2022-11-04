@@ -269,7 +269,8 @@ public class OtterEntity extends Animal implements IAnimatable {
 
     @Override
     protected void jumpInLiquid(TagKey<Fluid> fluidTag) {
-        this.setDeltaMovement(this.getDeltaMovement().add(0.0D, (double) 0.08F * this.getAttribute(net.minecraftforge.common.ForgeMod.SWIM_SPEED.get()).getValue(), 0.0D));
+        // TODO check if SWIM_SPEED is needed for fabric
+        this.setDeltaMovement(this.getDeltaMovement().add(0.0D, (double) 0.08F /* this.getAttribute(net.minecraftforge.common.ForgeMod.SWIM_SPEED.get()).getValue()*/, 0.0D));
     }
 
     @Override

@@ -1,14 +1,14 @@
 package com.github.eterdelta.crittersandcompanions.registry;
 
 import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
+import com.github.eterdelta.crittersandcompanions.platform.DeferredRegister;
+import com.github.eterdelta.crittersandcompanions.platform.RegistryObject;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 
 public class CACSounds {
-    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CrittersAndCompanions.MODID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registry.SOUND_EVENT, CrittersAndCompanions.MODID);
 
     public static final RegistryObject<SoundEvent> BITE_ATTACK = SOUNDS.register("entity.bite_attack", () -> new SoundEvent(new ResourceLocation(CrittersAndCompanions.MODID, "entity.bite_attack")));
     public static final RegistryObject<SoundEvent> BUBBLE_POP = SOUNDS.register("entity.bubble_pop", () -> new SoundEvent(new ResourceLocation(CrittersAndCompanions.MODID, "entity.bubble_pop")));
