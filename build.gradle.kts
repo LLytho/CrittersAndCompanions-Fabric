@@ -5,6 +5,7 @@ plugins {
     idea
     `maven-publish`
     id("fabric-loom") version "1.0-SNAPSHOT"
+    id("io.github.juuxel.loom-quiltflower") version("1.7.4")
 }
 
 val license: String by project
@@ -61,7 +62,7 @@ dependencies {
     /**
      * Mod dependencies
      */
-    modImplementation("software.bernie.geckolib:geckolib-fabric-1.18:3.0.76") { isTransitive = false }
+    modImplementation("software.bernie.geckolib:geckolib-fabric-1.19:3.1.37") { isTransitive = false }
 }
 
 tasks {

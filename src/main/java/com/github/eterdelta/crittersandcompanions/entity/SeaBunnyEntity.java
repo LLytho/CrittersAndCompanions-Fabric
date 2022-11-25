@@ -11,6 +11,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -38,10 +39,13 @@ import net.minecraft.world.phys.Vec3;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
+import software.bernie.geckolib3.core.builder.ILoopType;
 import software.bernie.geckolib3.core.controller.AnimationController;
 import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
+import software.bernie.geckolib3.core.manager.InstancedAnimationFactory;
+import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.Random;
 
@@ -49,7 +53,7 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
     private static final EntityDataAccessor<Boolean> CLIMBING = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> FROM_BUCKET = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.BOOLEAN);
-    private final AnimationFactory factory = new AnimationFactory(this);
+    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
     public SeaBunnyEntity(EntityType<? extends SeaBunnyEntity> entityType, Level level) {
         super(entityType, level);
@@ -61,7 +65,7 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 8.0D).add(Attributes.MOVEMENT_SPEED, 0.08D);
     }
 
-    public static boolean checkSeaBunnySpawnRules(EntityType<SeaBunnyEntity> entityType, LevelAccessor levelAccessor, MobSpawnType spawnType, BlockPos blockPos, Random random) {
+    public static boolean checkSeaBunnySpawnRules(EntityType<SeaBunnyEntity> entityType, LevelAccessor levelAccessor, MobSpawnType spawnType, BlockPos blockPos, RandomSource random) {
         return levelAccessor.getBlockState(blockPos.below()).isFaceSturdy(levelAccessor, blockPos.below(), Direction.UP) && blockPos.getY() > levelAccessor.getSeaLevel() - 32;
     }
 
@@ -103,7 +107,7 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
     }
 
     @Override
-    protected int getExperienceReward(Player player) {
+    public int getExperienceReward() {
         return this.random.nextInt(2, 5);
     }
 
@@ -198,9 +202,9 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
         if (this.animationSpeed > 0.03F) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny_move", true));
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny_move", ILoopType.EDefaultLoopTypes.LOOP));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny", true));
+            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny", ILoopType.EDefaultLoopTypes.LOOP));
         }
         return PlayState.CONTINUE;
     }
