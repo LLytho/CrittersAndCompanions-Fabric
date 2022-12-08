@@ -44,6 +44,10 @@ loom {
             it.vmArgs("-XX:+IgnoreUnrecognizedVMOptions", "-XX:+AllowEnhancedClassRedefinition")
         }
     }
+
+    mixin {
+        defaultRefmapName.set("${modId}.refmap.json")
+    }
 }
 
 
@@ -56,7 +60,6 @@ dependencies {
     modApi("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
     mappings(loom.layered {
         officialMojangMappings()
-        mappings(rootProject.file("gecko.tiny"))
     })
 
     /**
