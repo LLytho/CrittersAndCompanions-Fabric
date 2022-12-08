@@ -1,6 +1,7 @@
 package com.github.eterdelta.crittersandcompanions.client.model.geo;
 
 import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
+import com.github.eterdelta.crittersandcompanions.entity.DragonflyEntity;
 import com.github.eterdelta.crittersandcompanions.entity.DumboOctopusEntity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib3.model.AnimatedGeoModel;

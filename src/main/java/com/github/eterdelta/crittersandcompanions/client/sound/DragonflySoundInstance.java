@@ -5,6 +5,7 @@ import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 
 public class DragonflySoundInstance extends AbstractTickableSoundInstance {
     private final DragonflyEntity dragonfly;
