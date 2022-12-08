@@ -9,7 +9,7 @@
       "pools": "field_949:Ljava/util/List;"
     },
     "com/github/eterdelta/crittersandcompanions/mixin/ClientPacketListenerMixin": {
-      "handleAddMob(Lnet/minecraft/network/protocol/game/ClientboundAddMobPacket;)V": "Lnet/minecraft/class_634;method_11138(Lnet/minecraft/class_2610;)V"
+      "postAddEntitySoundInstance": "Lnet/minecraft/class_634;method_43209(Lnet/minecraft/class_1297;)V"
     },
     "com/github/eterdelta/crittersandcompanions/mixin/CatMixin": {
       "net/minecraft/world/entity/animal/Cat.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_1451;field_6809:Lnet/minecraft/class_1856;",
@@ -43,7 +43,7 @@
         "pools": "field_949:Ljava/util/List;"
       },
       "com/github/eterdelta/crittersandcompanions/mixin/ClientPacketListenerMixin": {
-        "handleAddMob(Lnet/minecraft/network/protocol/game/ClientboundAddMobPacket;)V": "Lnet/minecraft/class_634;method_11138(Lnet/minecraft/class_2610;)V"
+        "postAddEntitySoundInstance": "Lnet/minecraft/class_634;method_43209(Lnet/minecraft/class_1297;)V"
       },
       "com/github/eterdelta/crittersandcompanions/mixin/CatMixin": {
         "net/minecraft/world/entity/animal/Cat.TEMPT_INGREDIENT:Lnet/minecraft/world/item/crafting/Ingredient;": "Lnet/minecraft/class_1451;field_6809:Lnet/minecraft/class_1856;",

@@ -9,8 +9,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
-public class DumboOctopusRenderer extends RenderFixHelper<DumboOctopusEntity> {
+public class DumboOctopusRenderer extends GeoEntityRenderer<DumboOctopusEntity> {
     public DumboOctopusRenderer(EntityRendererProvider.Context context) {
         super(context, new DumboOctopusModel());
     }

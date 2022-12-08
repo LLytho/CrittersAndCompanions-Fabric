@@ -8,8 +8,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
 
-public class KoiFishRenderer extends RenderFixHelper<KoiFishEntity> {
+public class KoiFishRenderer extends GeoEntityRenderer<KoiFishEntity> {
     public KoiFishRenderer(EntityRendererProvider.Context context) {
         super(context, new KoiFishModel());
     }
