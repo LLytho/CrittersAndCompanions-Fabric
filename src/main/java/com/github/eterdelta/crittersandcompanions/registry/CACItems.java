@@ -1,21 +1,18 @@
 package com.github.eterdelta.crittersandcompanions.registry;
 
 import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
+import com.github.eterdelta.crittersandcompanions.item.DragonflyArmorItem;
 import com.github.eterdelta.crittersandcompanions.item.PearlNecklaceItem;
 import com.github.eterdelta.crittersandcompanions.platform.DeferredRegister;
 import com.github.eterdelta.crittersandcompanions.platform.RegistryObject;
 import net.minecraft.core.Registry;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.food.Foods;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.MobBucketItem;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+
 
 public class CACItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM, CrittersAndCompanions.MODID);
@@ -45,4 +42,6 @@ public class CACItems {
     public static final RegistryObject<Item> OTTER_SPAWN_EGG = ITEMS.register("otter_spawn_egg", () -> new SpawnEggItem(CACEntities.OTTER.get(), 0x352C34, 0xB49494, (new Item.Properties()).tab(CrittersAndCompanions.CREATIVE_TAB)));
     public static final RegistryObject<Item> RED_PANDA_SPAWN_EGG = ITEMS.register("red_panda_spawn_egg", () -> new SpawnEggItem(CACEntities.RED_PANDA.get(), 0xF4943C, 0x13131B, (new Item.Properties()).tab(CrittersAndCompanions.CREATIVE_TAB)));
     public static final RegistryObject<Item> SEA_BUNNY_SPAWN_EGG = ITEMS.register("sea_bunny_spawn_egg", () -> new SpawnEggItem(CACEntities.SEA_BUNNY.get(), 0xF4ECE4, 0x453337, (new Item.Properties()).tab(CrittersAndCompanions.CREATIVE_TAB)));
+
+    public static final RegistryObject<Item> SHIMA_ENAGA_SPAWN_EGG = ITEMS.register("shima_enaga_spawn_egg", () -> new SpawnEggItem(CACEntities.SHIMA_ENAGA.get(), 0xFCFCEC, 0x5C3C34, (new Item.Properties()).tab(CrittersAndCompanions.CREATIVE_TAB)));
 }

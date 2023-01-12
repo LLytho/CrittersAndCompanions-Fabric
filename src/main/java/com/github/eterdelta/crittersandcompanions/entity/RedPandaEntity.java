@@ -24,7 +24,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraftforge.event.ForgeEventFactory;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -130,7 +129,7 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
                     handStack.shrink(1);
                 }
                 if (!this.level.isClientSide()) {
-                    if (this.random.nextInt(10) == 0 && !ForgeEventFactory.onAnimalTame(this, player)) {
+                    if (this.random.nextInt(10) == 0) {
                         this.tame(player);
                         this.level.broadcastEntityEvent(this, (byte) 7);
                     } else {

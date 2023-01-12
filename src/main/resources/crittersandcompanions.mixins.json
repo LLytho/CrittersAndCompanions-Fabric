@@ -6,17 +6,19 @@
   "refmap": "crittersandcompanions.refmap.json",
   "mixins": [
     "CatMixin",
-    "DrownedMixin",
     "LivingEntityMixin",
     "LootPoolAccessor",
     "LootTableBuilderAccessor",
     "NearestAttackableTargetGoalMixin",
     "NeutralMobsMixin",
     "OcelotMixin",
+    "PlayerMixin",
     "ZombifiedPiglinMixin"
   ],
   "client": [
-    "ClientPacketListenerMixin"
+    "ClientPacketListenerMixin",
+    "LayerDefinitionsMixin",
+    "PlayerRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

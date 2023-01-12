@@ -1,9 +1,6 @@
 package com.github.eterdelta.crittersandcompanions.entity;
 
 import com.github.eterdelta.crittersandcompanions.capability.CACCapabilities;
-import com.github.eterdelta.crittersandcompanions.capability.IBubbleStateCapability;
-import com.github.eterdelta.crittersandcompanions.network.CACPacketHandler;
-import com.github.eterdelta.crittersandcompanions.network.ClientboundBubbleStatePacket;
 import com.github.eterdelta.crittersandcompanions.registry.CACItems;
 import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
 import net.minecraft.core.BlockPos;
@@ -35,8 +32,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -219,13 +214,11 @@ public class DumboOctopusEntity extends WaterAnimal implements IAnimatable, Buck
     }
 
     public void sendBubble(ServerPlayer player, boolean state) {
-        LazyOptional<IBubbleStateCapability> capability = player.getCapability(CACCapabilities.BUBBLE_STATE);
-
-        capability.ifPresent(bubbleState -> {
-            bubbleState.setActive(state);
-            CACPacketHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
-                    new ClientboundBubbleStatePacket(state, player.getId()));
-        });
+        try {
+            player.getEntityData().set(CACCapabilities.BUBBLE_STATE, state);
+        } catch (Exception e) {
+            return;
+        }
     }
 
     public ServerPlayer getBubbledPlayer() {

@@ -36,6 +36,10 @@ repositories {
 }
 
 loom {
+    val aw = file("src/main/resources/${modId}.accesswidener")
+    println(aw)
+    accessWidenerPath.set(aw)
+
     runs {
         onEach {
             it.configName = "Fabric ${it.environment.capitalize()}"
@@ -66,6 +70,7 @@ dependencies {
      * Mod dependencies
      */
     modImplementation("software.bernie.geckolib:geckolib-fabric-1.19:3.1.37") { isTransitive = false }
+
 }
 
 tasks {
