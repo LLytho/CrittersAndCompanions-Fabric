@@ -56,6 +56,7 @@ public class CrittersAndCompanions implements ModInitializer, ClientModInitializ
         FabricDefaultAttributeRegistry.register(CACEntities.KOI_FISH.get(), KoiFishEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(CACEntities.DRAGONFLY.get(), DragonflyEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(CACEntities.SEA_BUNNY.get(), SeaBunnyEntity.createAttributes());
+        FabricDefaultAttributeRegistry.register(CACEntities.SHIMA_ENAGA.get(), ShimaEnagaEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(CACEntities.FERRET.get(), FerretEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(CACEntities.DUMBO_OCTOPUS.get(), DumboOctopusEntity.createAttributes());
         FabricDefaultAttributeRegistry.register(CACEntities.LEAF_INSECT.get(), LeafInsectEntity.createAttributes());
@@ -67,6 +68,7 @@ public class CrittersAndCompanions implements ModInitializer, ClientModInitializ
         EntityRendererRegistry.register(CACEntities.KOI_FISH.get(), KoiFishRenderer::new);
         EntityRendererRegistry.register(CACEntities.DRAGONFLY.get(), DragonflyRenderer::new);
         EntityRendererRegistry.register(CACEntities.SEA_BUNNY.get(), SeaBunnyRenderer::new);
+        EntityRendererRegistry.register(CACEntities.SHIMA_ENAGA.get(), ShimaEnagaRenderer::new);
         EntityRendererRegistry.register(CACEntities.FERRET.get(), FerretRenderer::new);
         EntityRendererRegistry.register(CACEntities.DUMBO_OCTOPUS.get(), DumboOctopusRenderer::new);
         EntityRendererRegistry.register(CACEntities.LEAF_INSECT.get(), LeafInsectRenderer::new);

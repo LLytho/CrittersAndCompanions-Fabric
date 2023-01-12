@@ -3,6 +3,7 @@ package com.github.eterdelta.crittersandcompanions.entity;
 import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
 import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -27,7 +28,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.ForgeEventFactory;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -39,7 +39,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class ShimaEnagaEntity extends TamableAnimal implements FlyingAnimal, IAnimatable {
-    private static final TagKey<Item> FOODS_TAG = ItemTags.create(new ResourceLocation(CrittersAndCompanions.MODID, "shima_enaga_food"));
+    private static final TagKey<Item> FOODS_TAG = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(CrittersAndCompanions.MODID, "shima_enaga_food"));
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
     public ShimaEnagaEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
@@ -118,7 +118,7 @@ public class ShimaEnagaEntity extends TamableAnimal implements FlyingAnimal, IAn
                 handStack.shrink(1);
             }
             if (!this.level.isClientSide()) {
-                if (this.random.nextInt(10) == 0 && !ForgeEventFactory.onAnimalTame(this, player)) {
+                if (this.random.nextInt(10) == 0) {
                     this.tame(player);
                     this.level.broadcastEntityEvent(this, (byte) 7);
                 } else {

@@ -25,6 +25,7 @@
   "mixins": [
     "crittersandcompanions.mixins.json"
   ],
+  "accessWidener" : "${modId}.accesswidener",
   "depends": {
     "fabric": "*",
     "minecraft": ">=${minecraftVersion}",

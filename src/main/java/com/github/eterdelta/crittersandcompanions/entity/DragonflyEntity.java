@@ -38,7 +38,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.ForgeEventFactory;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -50,6 +49,7 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.EnumSet;
+import java.util.Optional;
 
 public class DragonflyEntity extends TamableAnimal implements IAnimatable {
     private static final EntityDataAccessor<ItemStack> ARMOR_ITEM = SynchedEntityData.defineId(DragonflyEntity.class, EntityDataSerializers.ITEM_STACK);
@@ -160,7 +160,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
         if (this.isTame()) {
             if (handStack.is(Items.SPIDER_EYE) && this.getHealth() < this.getMaxHealth()) {
                 this.gameEvent(GameEvent.EAT, this);
-                this.heal(handStack.getFoodProperties(this).getNutrition());
+                Optional.ofNullable(handStack.getItem().getFoodProperties()).ifPresent((food) -> this.heal(food.getNutrition()));
                 if (!player.getAbilities().instabuild) {
                     handStack.shrink(1);
                 }
@@ -195,7 +195,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
                     handStack.shrink(1);
                 }
                 if (!this.level.isClientSide()) {
-                    if (this.random.nextInt(10) == 0 && !ForgeEventFactory.onAnimalTame(this, player)) {
+                    if (this.random.nextInt(10) == 0) {
                         this.tame(player);
                         this.level.broadcastEntityEvent(this, (byte) 7);
                     } else {
