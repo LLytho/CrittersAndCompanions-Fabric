@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.0.1 - 2023-06-05
+- Fix speed boost when holding pearl necklace
+
 ## 2.0.0 - 2023-06-04
 - Added shima enaga
 - Added dumbo octopus bubble mechanic
