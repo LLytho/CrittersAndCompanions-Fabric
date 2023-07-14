@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.2 - 2023-07-14
+- Fixed Dragonfly spawn height
+- Fixed Red Panda and Ferret not being able to breed when sit down
+- Fixed Red Panda and Ferret not being able to be tamed under certain circumstances
+- Fixed baby Red Panda sitting animation
+- Add spawn config (Fabric Only)
+
 ## 2.0.1 - 2023-06-05
 - Fix speed boost when holding pearl necklace
 

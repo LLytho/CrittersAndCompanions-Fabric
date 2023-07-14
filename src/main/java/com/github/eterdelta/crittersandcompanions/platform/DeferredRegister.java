@@ -32,4 +32,8 @@ public class DeferredRegister<T> {
     public void register() {
         entries.forEach(ro -> Registry.register(registry, ro.id(), ro.get()));
     }
+
+    public List<RegistryObject<? extends T>> getEntries() {
+        return entries;
+    }
 }
