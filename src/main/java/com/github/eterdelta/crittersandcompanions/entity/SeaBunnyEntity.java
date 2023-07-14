@@ -3,12 +3,14 @@ package com.github.eterdelta.crittersandcompanions.entity;
 import com.github.eterdelta.crittersandcompanions.registry.CACItems;
 import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -64,7 +66,9 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
     }
 
     public static boolean checkSeaBunnySpawnRules(EntityType<SeaBunnyEntity> entityType, LevelAccessor levelAccessor, MobSpawnType spawnType, BlockPos blockPos, RandomSource random) {
-        return blockPos.getY() < levelAccessor.getSeaLevel() - 8;
+        return blockPos.getY() < levelAccessor.getSeaLevel() - 8
+                && levelAccessor.getFluidState(blockPos).is(FluidTags.WATER)
+                && levelAccessor.getBlockState(blockPos.below()).isFaceSturdy(levelAccessor, blockPos.below(), Direction.UP);
     }
 
     @Override

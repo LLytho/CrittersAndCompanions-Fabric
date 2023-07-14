@@ -203,7 +203,7 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
                     return InteractionResult.sidedSuccess(this.level.isClientSide());
                 } else if (this.getHealth() < this.getMaxHealth()) {
                     this.gameEvent(GameEvent.EAT, this);
-                    this.heal(handStack.getFoodProperties(this).getNutrition());
+                    Optional.ofNullable(handStack.getItem().getFoodProperties()).ifPresent(food -> this.heal(food.getNutrition()));
                     if (!player.getAbilities().instabuild) {
                         handStack.shrink(1);
                     }
