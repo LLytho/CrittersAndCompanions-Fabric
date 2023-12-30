@@ -4,6 +4,8 @@ import com.github.eterdelta.crittersandcompanions.config.SpawnConfig;
 import com.github.eterdelta.crittersandcompanions.entity.*;
 import com.github.eterdelta.crittersandcompanions.registry.CACEntities;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.WaterAnimal;
@@ -19,7 +21,7 @@ public class SpawnHandler {
         var spawns = SpawnConfig.load();
         spawns.forEach((entityType, spawnEntry) -> {
             spawnEntry.addSpawn(entityType);
-            SpawnConfig.LOGGER.info("[CaC] Added spawn entry for entity <" + Registry.ENTITY_TYPE.getKey(entityType) + "> with data: " + spawnEntry);
+            SpawnConfig.LOGGER.info("[CaC] Added spawn entry for entity <" + BuiltInRegistries.ENTITY_TYPE.getKey(entityType) + "> with data: " + spawnEntry);
         });
 
 //        BiomeModifications.addSpawn(BiomeSelectors.includeByKey(Biomes.RIVER), MobCategory.WATER_CREATURE, CACEntities.OTTER.get(), 2, 3, 5);

@@ -32,6 +32,7 @@ extensions.configure<JavaPluginExtension> {
 
 repositories {
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/")
+    maven ("https://maven.terraformersmc.com/")
     mavenCentral()
 }
 
@@ -69,7 +70,8 @@ dependencies {
     /**
      * Mod dependencies
      */
-    modImplementation("software.bernie.geckolib:geckolib-fabric-1.19:3.1.37") { isTransitive = false }
+    modImplementation("software.bernie.geckolib:geckolib-fabric-1.20.1:4.2.2") { isTransitive = false }
+    modLocalRuntime("dev.emi:emi-fabric:1.0.28+1.20.1") { isTransitive = false }
 
 }
 

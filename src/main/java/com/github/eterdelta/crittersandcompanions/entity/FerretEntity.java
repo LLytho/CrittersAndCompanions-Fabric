@@ -4,6 +4,7 @@ import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
 import com.github.eterdelta.crittersandcompanions.registry.CACEntities;
 import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -44,31 +45,31 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FerretEntity extends TamableAnimal implements IAnimatable {
+public class FerretEntity extends TamableAnimal implements GeoEntity {
     private static final EntityDataAccessor<Boolean> SLEEPING = SynchedEntityData.defineId(FerretEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DIGGING = SynchedEntityData.defineId(FerretEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(FerretEntity.class, EntityDataSerializers.INT);
-    private static final TagKey<Item> FOODS_TAG = TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(CrittersAndCompanions.MODID, "ferret_food"));
-    private static  final TagKey<Block> GRAVEL_TAG = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("c:gravel"));
+    private static final TagKey<Item> FOODS_TAG = TagKey.create(Registries.ITEM, new ResourceLocation(CrittersAndCompanions.MODID, "ferret_food"));
+    private static  final TagKey<Block> GRAVEL_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("c:gravel"));
     private static final ResourceLocation DIGGABLES = new ResourceLocation(CrittersAndCompanions.MODID, "gameplay/digging");
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected BlockState stateToDig;
     protected int digCooldown;
 
@@ -158,7 +159,7 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
     @Override
     public boolean doHurtTarget(Entity entity) {
         if (super.doHurtTarget(entity)) {
-            this.playSound(CACSounds.BITE_ATTACK.get(), this.getSoundVolume(), this.getVoicePitch());
+            this.playSound(CACSounds.BITE_ATTACK, this.getSoundVolume(), this.getVoicePitch());
             return true;
         } else {
             return false;
@@ -174,20 +175,20 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
                 if (!player.getAbilities().instabuild) {
                     handStack.shrink(1);
                 }
-                if (!this.level.isClientSide()) {
+                if (!this.getCommandSenderWorld().isClientSide()) {
                     if (this.random.nextInt(10) == 0 /*&& !ForgeEventFactory.onAnimalTame(this, player)*/) {
                         this.tame(player);
-                        this.level.broadcastEntityEvent(this, (byte) 7);
+                        this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 7);
                     } else {
-                        this.level.broadcastEntityEvent(this, (byte) 6);
+                        this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 6);
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide());
+                return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
             } else if (this.isTame() && this.isOwnedBy(player)) {
-                if (!this.level.isClientSide()) {
+                if (!this.getCommandSenderWorld().isClientSide()) {
                     if (handStack.is(Items.CHICKEN) && !this.isBaby() && !this.isInSittingPose()) {
                         if (this.digCooldown <= 0) {
-                            this.stateToDig = this.level.getBlockState(this.blockPosition().below());
+                            this.stateToDig = this.getCommandSenderWorld().getBlockState(this.blockPosition().below());
 
                             if (stateToDig.is(BlockTags.DIRT) || stateToDig.is(BlockTags.SAND) || stateToDig.is(GRAVEL_TAG)) {
                                 this.setDigging(true);
@@ -200,7 +201,7 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
                 }
                 if (!this.isFood(handStack)) {
                     this.setOrderedToSit(!this.isOrderedToSit());
-                    return InteractionResult.sidedSuccess(this.level.isClientSide());
+                    return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
                 } else if (this.getHealth() < this.getMaxHealth()) {
                     this.gameEvent(GameEvent.EAT, this);
                     Optional.ofNullable(handStack.getItem().getFoodProperties()).ifPresent(food -> this.heal(food.getNutrition()));
@@ -227,17 +228,17 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.isSleeping() ? null : CACSounds.FERRET_AMBIENT.get();
+        return this.isSleeping() ? null : CACSounds.FERRET_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return CACSounds.FERRET_HURT.get();
+        return CACSounds.FERRET_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return CACSounds.FERRET_DEATH.get();
+        return CACSounds.FERRET_DEATH;
     }
 
     @Override
@@ -245,7 +246,7 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
         spawnGroupData = super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData, p_146750_);
         if (mobSpawnType.equals(MobSpawnType.SPAWNER) && this.random.nextFloat() <= 0.2F) {
             for (int i = 0; i < this.random.nextInt(1, 4); i++) {
-                FerretEntity baby = CACEntities.FERRET.get().create(this.level);
+                FerretEntity baby = CACEntities.FERRET.get().create(this.getCommandSenderWorld());
                 baby.setVariant(this.random.nextInt(0, 2));
                 baby.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
                 baby.setBaby(true);
@@ -256,29 +257,29 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
         return spawnGroupData;
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends GeoAnimatable> PlayState predicate(AnimationState<E> event) {
         if (this.isDigging()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("ferret_dig", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+            event.getController().setAnimation(RawAnimation.begin().then("ferret_dig", Animation.LoopType.PLAY_ONCE));
         } else if (this.isInSittingPose()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("ferret_sit", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("ferret_sit", Animation.LoopType.LOOP));
         } else if (this.isSleeping()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("ferret_sleep", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("ferret_sleep", Animation.LoopType.LOOP));
         } else if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("ferret_run", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("ferret_run", Animation.LoopType.LOOP));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("ferret_idle", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("ferret_idle", Animation.LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "predicate_controller", 3, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public boolean isSleeping() {
@@ -332,7 +333,7 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
                 --this.countdown;
                 return false;
             } else {
-                return FerretEntity.this.level.isNight();
+                return FerretEntity.this.getCommandSenderWorld().isNight();
             }
         }
 
@@ -378,28 +379,28 @@ public class FerretEntity extends TamableAnimal implements IAnimatable {
                 this.digTime--;
 
                 if (this.digTime % 5 == 0 && this.digTime >= 10) {
-                    FerretEntity.this.level.playSound(null, FerretEntity.this, SoundEvents.GRAVEL_HIT, SoundSource.BLOCKS, 0.2F, 1.2F);
+                    FerretEntity.this.getCommandSenderWorld().playSound(null, FerretEntity.this, SoundEvents.GRAVEL_HIT, SoundSource.BLOCKS, 0.2F, 1.2F);
                     for (int i = 0; i < 4; ++i) {
                         double d0 = FerretEntity.this.random.nextGaussian() * 0.01D;
                         double d1 = FerretEntity.this.random.nextGaussian() * 0.01D;
                         double d2 = FerretEntity.this.random.nextGaussian() * 0.01D;
-                        ((ServerLevel) FerretEntity.this.level).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, FerretEntity.this.stateToDig), FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), 2, d0, d1, d2, 0.1D);
+                        ((ServerLevel) FerretEntity.this.getCommandSenderWorld()).sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, FerretEntity.this.stateToDig), FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), 2, d0, d1, d2, 0.1D);
                     }
                 }
                 if (this.digTime == 10) {
-                    LootTable digTable = FerretEntity.this.level.getServer().getLootTables().get(DIGGABLES);
-                    List<ItemStack> dugItems = digTable.getRandomItems(new LootContext.Builder((ServerLevel) FerretEntity.this.level).create(LootContextParamSets.EMPTY));
+                    LootTable digTable = FerretEntity.this.getCommandSenderWorld().getServer().getLootData().getLootTable(DIGGABLES);
+                    List<ItemStack> dugItems = digTable.getRandomItems(new LootParams.Builder((ServerLevel) FerretEntity.this.getCommandSenderWorld()).create(LootContextParamSets.EMPTY));
 
                     if (!dugItems.isEmpty()) {
-                        FerretEntity.this.level.playSound(null, FerretEntity.this, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.1F, 1.2F);
+                        FerretEntity.this.getCommandSenderWorld().playSound(null, FerretEntity.this, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.1F, 1.2F);
                     }
 
                     for (ItemStack stack : dugItems) {
-                        ItemEntity itemEntity = new ItemEntity(FerretEntity.this.level, FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), stack);
-                        FerretEntity.this.level.addFreshEntity(itemEntity);
+                        ItemEntity itemEntity = new ItemEntity(FerretEntity.this.getCommandSenderWorld(), FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), stack);
+                        FerretEntity.this.getCommandSenderWorld().addFreshEntity(itemEntity);
                     }
-                    ExperienceOrb xp = new ExperienceOrb(FerretEntity.this.level, FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), FerretEntity.this.random.nextInt(1, 6));
-                    FerretEntity.this.level.addFreshEntity(xp);
+                    ExperienceOrb xp = new ExperienceOrb(FerretEntity.this.getCommandSenderWorld(), FerretEntity.this.getX(), FerretEntity.this.getY(), FerretEntity.this.getZ(), FerretEntity.this.random.nextInt(1, 6));
+                    FerretEntity.this.getCommandSenderWorld().addFreshEntity(xp);
                 }
             } else {
                 this.stop();

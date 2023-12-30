@@ -9,15 +9,15 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-public class RedPandaRenderer extends GeoEntityRenderer<RedPandaEntity> {
+public class RedPandaRenderer<E extends RedPandaEntity> extends GeoEntityRenderer<E> {
     public RedPandaRenderer(EntityRendererProvider.Context context) {
         super(context, new RedPandaModel());
     }
 
     @Override
-    public RenderType getRenderType(RedPandaEntity animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {
+    public RenderType getRenderType(E animatable, ResourceLocation textureLocation, @Nullable MultiBufferSource renderTypeBuffer, float partialTicks) {
         return RenderType.entityCutoutNoCull(this.getTextureLocation(animatable));
     }
 }

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerMixin {
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void defineEntityTag(Level level, BlockPos blockPos, float f, GameProfile gameProfile, ProfilePublicKey profilePublicKey, CallbackInfo ci) {
+    private void defineEntityTag(Level level, BlockPos blockPos, float f, GameProfile gameProfile, CallbackInfo ci) {
         ((Player) (Object) this).getEntityData().define(CACCapabilities.BUBBLE_STATE, false);
     }
 }

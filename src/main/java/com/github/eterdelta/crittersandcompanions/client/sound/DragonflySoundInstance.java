@@ -11,7 +11,7 @@ public class DragonflySoundInstance extends AbstractTickableSoundInstance {
     private final DragonflyEntity dragonfly;
 
     public DragonflySoundInstance(DragonflyEntity dragonflyEntity) {
-        super(CACSounds.DRAGONFLY_AMBIENT.get(), SoundSource.NEUTRAL, SoundInstance.createUnseededRandom());
+        super(CACSounds.DRAGONFLY_AMBIENT, SoundSource.NEUTRAL, SoundInstance.createUnseededRandom());
         this.dragonfly = dragonflyEntity;
         this.looping = true;
         this.delay = 0;

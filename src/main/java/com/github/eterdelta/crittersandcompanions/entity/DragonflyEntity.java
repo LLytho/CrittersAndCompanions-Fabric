@@ -38,22 +38,21 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.Optional;
 
-public class DragonflyEntity extends TamableAnimal implements IAnimatable {
+public class DragonflyEntity extends TamableAnimal implements GeoEntity {
     private static final EntityDataAccessor<ItemStack> ARMOR_ITEM = SynchedEntityData.defineId(DragonflyEntity.class, EntityDataSerializers.ITEM_STACK);
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public DragonflyEntity(EntityType<? extends DragonflyEntity> entityType, Level level) {
         super(entityType, level);
@@ -111,7 +110,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
 
     @Override
     public float getWalkTargetValue(BlockPos blockPos) {
-        return !this.isTame() && this.level.getBiome(blockPos).is(Biomes.RIVER) ? 10.0F : 5.0F;
+        return !this.isTame() && this.getCommandSenderWorld().getBiome(blockPos).is(Biomes.RIVER) ? 10.0F : 5.0F;
     }
 
     @Override
@@ -134,7 +133,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.8D));
         }
-        this.calculateEntityAnimation(this, false);
+        this.calculateEntityAnimation( false);
     }
 
     @Override
@@ -165,7 +164,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
                     handStack.shrink(1);
                 }
             } else if (this.isOwnedBy(player)) {
-                if (!this.level.isClientSide()) {
+                if (!this.getCommandSenderWorld().isClientSide()) {
                     if (handStack.getItem() instanceof DragonflyArmorItem armorItem && this.getArmor().isEmpty()) {
                         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(armorItem.getHealthBuff());
                         this.setHealth(armorItem.getHealthBuff());
@@ -179,7 +178,7 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
                     } else if (player.isCrouching() && !this.getArmor().isEmpty()) {
                         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(8.0D);
                         this.setHealth(8.0F);
-                        this.level.addFreshEntity(new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), this.getArmor().copy()));
+                        this.getCommandSenderWorld().addFreshEntity(new ItemEntity(this.getCommandSenderWorld(), this.getX(), this.getY(), this.getZ(), this.getArmor().copy()));
                         this.setArmor(ItemStack.EMPTY);
                         this.playSound(SoundEvents.ITEM_PICKUP, 0.2F, 1.0F);
 
@@ -187,22 +186,22 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
                         this.setOrderedToSit(!this.isOrderedToSit());
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide());
+                return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
             }
         } else {
             if (handStack.is(Items.SPIDER_EYE)) {
                 if (!player.getAbilities().instabuild) {
                     handStack.shrink(1);
                 }
-                if (!this.level.isClientSide()) {
+                if (!this.getCommandSenderWorld().isClientSide()) {
                     if (this.random.nextInt(10) == 0) {
                         this.tame(player);
-                        this.level.broadcastEntityEvent(this, (byte) 7);
+                        this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 7);
                     } else {
-                        this.level.broadcastEntityEvent(this, (byte) 6);
+                        this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 6);
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level.isClientSide());
+                return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
             }
         }
         return super.mobInteract(player, hand);
@@ -234,23 +233,23 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
         return null;
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    protected <T extends GeoAnimatable> PlayState idle(AnimationState<T> event) {
         if (this.isInSittingPose()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("dragonfly_sit", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("dragonfly_sit", Animation.LoopType.LOOP));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("dragonfly_fly", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("dragonfly_fly", Animation.LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 5, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "predicate_controller", 3, this::idle));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public ItemStack getArmor() {
@@ -262,16 +261,17 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
     }
 
     static class FollowOwnerGoal extends net.minecraft.world.entity.ai.goal.FollowOwnerGoal {
-        private final Level level;
 
+        private final DragonflyEntity dragonfly;
         public FollowOwnerGoal(DragonflyEntity dragonfly, double speedModifier, float startDistance, float stopDistance, boolean canFly) {
             super(dragonfly, speedModifier, startDistance, stopDistance, canFly);
-            this.level = dragonfly.getLevel();
+            this.dragonfly = dragonfly;
         }
 
         @Override
         protected boolean canTeleportTo(BlockPos blockPos) {
-            return this.level.getBlockState(blockPos).isAir() || super.canTeleportTo(blockPos);
+            Level level = this.dragonfly.level();
+            return level.getBlockState(blockPos).isAir() || super.canTeleportTo(blockPos);
         }
     }
 
@@ -333,14 +333,19 @@ public class DragonflyEntity extends TamableAnimal implements IAnimatable {
 
         @Override
         public void tick() {
-            if (this.targetPosition != null && (!DragonflyEntity.this.level.isEmptyBlock(this.targetPosition) || this.targetPosition.getY() <= DragonflyEntity.this.level.getMinBuildHeight())) {
+            if (this.targetPosition != null && (!DragonflyEntity.this.getCommandSenderWorld().isEmptyBlock(this.targetPosition) || this.targetPosition.getY() <= DragonflyEntity.this.getCommandSenderWorld().getMinBuildHeight())) {
                 this.targetPosition = null;
             }
 
             if (this.targetPosition == null || DragonflyEntity.this.random.nextInt(30) == 0 || this.targetPosition.closerToCenterThan(DragonflyEntity.this.position(), 2.0D)) {
                 Vec3 randomPos = RandomPos.generateRandomPos(DragonflyEntity.this, () ->
-                        new BlockPos(DragonflyEntity.this.getX() + (double) DragonflyEntity.this.random.nextInt(7) - (double) DragonflyEntity.this.random.nextInt(7), DragonflyEntity.this.getY() + (double) DragonflyEntity.this.random.nextInt(6) - 2.0D, DragonflyEntity.this.getZ() + (double) DragonflyEntity.this.random.nextInt(7) - (double) DragonflyEntity.this.random.nextInt(7)));
-                this.targetPosition = randomPos == null ? DragonflyEntity.this.blockPosition() : new BlockPos(randomPos);
+                        new BlockPos(
+                                (int) (DragonflyEntity.this.getX() + (double) DragonflyEntity.this.random.nextInt(7) - (double) DragonflyEntity.this.random.nextInt(7)),
+                                (int) (DragonflyEntity.this.getY() + (double) DragonflyEntity.this.random.nextInt(6) - 2.0D),
+                                (int) (DragonflyEntity.this.getZ() + (double) DragonflyEntity.this.random.nextInt(7) - (double) DragonflyEntity.this.random.nextInt(7))
+                        )
+                );
+                this.targetPosition = randomPos == null ? DragonflyEntity.this.blockPosition() : new BlockPos((int) randomPos.x, (int) randomPos.y, (int) randomPos.z);
             }
 
             double d0 = (double) this.targetPosition.getX() + 0.5D - DragonflyEntity.this.getX();

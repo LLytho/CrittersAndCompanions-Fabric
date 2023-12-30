@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import java.util.List;
 
 public class PearlNecklaceItem extends Item {
+
     private final int level;
 
     public PearlNecklaceItem(Properties properties, int necklaceLevel) {

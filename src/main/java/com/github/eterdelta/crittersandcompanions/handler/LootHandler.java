@@ -12,7 +12,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
-import net.minecraft.world.level.storage.loot.predicates.AlternativeLootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LocationCheck;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -55,7 +55,10 @@ public class LootHandler {
     }
 
     private static void addFishingPoolEntries(LootPool pool) {
-        LootPoolEntryContainer clamEntry = LootItem.lootTableItem(CACItems.CLAM.get()).setWeight(10).when(AlternativeLootItemCondition.alternative(LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.RIVER)))).build();
+
+        LootItemCondition.Builder condition = LocationCheck.checkLocation(LocationPredicate.Builder.location().setBiome(Biomes.RIVER));
+
+        LootPoolEntryContainer clamEntry = LootItem.lootTableItem(CACItems.CLAM.get()).setWeight(10).when(condition).build();
         LootPoolEntryContainer koiFish = LootItem.lootTableItem(CACItems.KOI_FISH.get()).setWeight(5).build();
 
         LootPoolAccessor mainPoolAccessor = ((LootPoolAccessor) pool);

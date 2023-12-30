@@ -52,24 +52,23 @@ import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
-public class OtterEntity extends Animal implements IAnimatable {
+public class OtterEntity extends Animal implements GeoEntity {
     private static final EntityDataAccessor<Boolean> FLOATING = SynchedEntityData.defineId(OtterEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> EATING = SynchedEntityData.defineId(OtterEntity.class, EntityDataSerializers.BOOLEAN);
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private boolean needsSurface;
     private int huntDelay;
     private int eatDelay;
@@ -183,13 +182,13 @@ public class OtterEntity extends Animal implements IAnimatable {
                     --this.eatDelay;
                 } else {
                     Vec3 mouthPos = this.calculateMouthPos();
-                    ((ServerLevel) this.level).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, this.getMainHandItem()), mouthPos.x(), mouthPos.y(), mouthPos.z(), 2, 0.0D, 0.1D, 0.0D, 0.05D);
+                    ((ServerLevel) this.getCommandSenderWorld()).sendParticles(new ItemParticleOption(ParticleTypes.ITEM, this.getMainHandItem()), mouthPos.x(), mouthPos.y(), mouthPos.z(), 2, 0.0D, 0.1D, 0.0D, 0.05D);
 
                     if (this.getRandom().nextDouble() < 0.5D) {
-                        this.playSound(CACSounds.OTTER_EAT.get(), 1.2F, 1.0F);
+                        this.playSound(CACSounds.OTTER_EAT, 1.2F, 1.0F);
                     }
                     if (--this.eatTime <= 0) {
-                        this.eat(this.level, this.getMainHandItem());
+                        this.eat(this.getCommandSenderWorld(), this.getMainHandItem());
                         this.setEating(false);
                     }
                 }
@@ -201,7 +200,7 @@ public class OtterEntity extends Animal implements IAnimatable {
                         } else {
                             this.setNeedsSurface(true);
                         }
-                    } else if (this.isOnGround()) {
+                    } else if (this.onGround()) {
                         this.startEating();
                     }
                 }
@@ -216,7 +215,7 @@ public class OtterEntity extends Animal implements IAnimatable {
     @Override
     public ItemStack eat(Level level, ItemStack itemStack) {
         if (itemStack.is(CACItems.CLAM.get())) {
-            if (this.random.nextFloat() <= 0.07F) {
+            if (this.random.nextFloat() <= 0.9F) {
                 Vec3 mouthPos = this.calculateMouthPos();
                 ItemEntity pearl = new ItemEntity(level, mouthPos.x(), mouthPos.y(), mouthPos.z(), new ItemStack(CACItems.PEARL.get()));
 
@@ -244,12 +243,12 @@ public class OtterEntity extends Animal implements IAnimatable {
             return;
         }
 
-        if (this.equipItemIfPossible(itemStack)) {
+        if (this.equipItemIfPossible(itemStack) == itemStack) {
             int count = itemStack.getCount();
 
             if (count > 1) {
-                ItemEntity extraItems = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), itemStack.split(count - 1));
-                this.level.addFreshEntity(extraItems);
+                ItemEntity extraItems = new ItemEntity(this.getCommandSenderWorld(), this.getX(), this.getY(), this.getZ(), itemStack.split(count - 1));
+                this.getCommandSenderWorld().addFreshEntity(extraItems);
             }
             this.onItemPickup(itemEntity);
             this.take(itemEntity, itemStack.getCount());
@@ -279,7 +278,7 @@ public class OtterEntity extends Animal implements IAnimatable {
             this.moveRelative(this.getSpeed(), speed);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
-            this.calculateEntityAnimation(this, false);
+            this.calculateEntityAnimation( false);
         } else {
             super.travel(speed);
         }
@@ -287,11 +286,11 @@ public class OtterEntity extends Animal implements IAnimatable {
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand interactionHand) {
+        if (this.isEating()) return InteractionResult.PASS;
         ItemStack handStack = player.getItemInHand(interactionHand);
         if (!this.isEating() && this.isFood(handStack)) {
             this.setItemInHand(InteractionHand.MAIN_HAND, handStack.split(1));
-            handStack.shrink(1);
-            return super.mobInteract(player, interactionHand);
+            return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
     }
@@ -320,7 +319,7 @@ public class OtterEntity extends Animal implements IAnimatable {
     @Override
     public boolean doHurtTarget(Entity entity) {
         if (super.doHurtTarget(entity)) {
-            this.playSound(CACSounds.BITE_ATTACK.get(), this.getSoundVolume(), this.getVoicePitch());
+            this.playSound(CACSounds.BITE_ATTACK, this.getSoundVolume(), this.getVoicePitch());
             return true;
         } else {
             return false;
@@ -329,22 +328,22 @@ public class OtterEntity extends Animal implements IAnimatable {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return CACSounds.OTTER_AMBIENT.get();
+        return CACSounds.OTTER_AMBIENT;
     }
 
     @Override
     protected SoundEvent getSwimSound() {
-        return CACSounds.OTTER_SWIM.get();
+        return CACSounds.OTTER_SWIM;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return CACSounds.OTTER_HURT.get();
+        return CACSounds.OTTER_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return CACSounds.OTTER_DEATH.get();
+        return CACSounds.OTTER_DEATH;
     }
 
     @Override
@@ -352,7 +351,7 @@ public class OtterEntity extends Animal implements IAnimatable {
         spawnGroupData = super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData, p_146750_);
         if (mobSpawnType.equals(MobSpawnType.SPAWNER) && this.random.nextFloat() <= 0.2F) {
             for (int i = 0; i < this.random.nextInt(1, 4); i++) {
-                OtterEntity baby = CACEntities.OTTER.get().create(this.level);
+                OtterEntity baby = CACEntities.OTTER.get().create(this.getCommandSenderWorld());
                 baby.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
                 baby.setBaby(true);
                 levelAccessor.addFreshEntity(baby);
@@ -361,38 +360,38 @@ public class OtterEntity extends Animal implements IAnimatable {
         return spawnGroupData;
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends GeoAnimatable> PlayState predicate(AnimationState<E> event) {
         if (this.isInWater()) {
             if (this.isFloating()) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_float", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_float", Animation.LoopType.LOOP));
             } else {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_swim", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_swim", Animation.LoopType.LOOP));
             }
             return PlayState.CONTINUE;
         } else {
             if (this.isEating()) {
                 if (this.getMainHandItem().is(CACItems.CLAM.get())) {
-                    event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_open", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+                    event.getController().setAnimation(RawAnimation.begin().then("otter_open", Animation.LoopType.PLAY_ONCE));
                 } else {
-                    event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_standing_eat", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+                    event.getController().setAnimation(RawAnimation.begin().then("otter_standing_eat", Animation.LoopType.PLAY_ONCE));
                 }
                 return PlayState.CONTINUE;
             } else if (event.isMoving()) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_walk", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_walk", Animation.LoopType.LOOP));
                 return PlayState.CONTINUE;
             } else {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_idle", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_idle", Animation.LoopType.LOOP));
                 return PlayState.CONTINUE;
             }
         }
     }
 
-    private <E extends IAnimatable> PlayState floatingHandsPredicate(AnimationEvent<E> event) {
+    private <E extends GeoAnimatable> PlayState floatingHandsPredicate(AnimationState<E> event) {
         if (this.isFloating()) {
             if (this.isEating() && this.eatDelay <= 0) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_hands_float_eat", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_hands_float_eat", Animation.LoopType.PLAY_ONCE));
             } else {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("otter_hands_float_idle", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("otter_hands_float_idle", Animation.LoopType.LOOP));
             }
             return PlayState.CONTINUE;
         }
@@ -400,14 +399,14 @@ public class OtterEntity extends Animal implements IAnimatable {
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 10, this::predicate));
-        data.addAnimationController(new AnimationController<>(this, "floating_hands_controller", 10, this::floatingHandsPredicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "controller", 10, this::predicate));
+        controllers.add(new AnimationController<>(this, "floating_hands_controller", 10, this::floatingHandsPredicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public boolean isHungryAt(ItemStack foodStack) {
@@ -416,17 +415,17 @@ public class OtterEntity extends Animal implements IAnimatable {
 
     private void rejectFood() {
         if (!this.getMainHandItem().isEmpty()) {
-            ItemEntity itemEntity = new ItemEntity(this.level, this.getX(), this.getY(), this.getZ(), this.getMainHandItem().copy());
+            ItemEntity itemEntity = new ItemEntity(this.getCommandSenderWorld(), this.getX(), this.getY(), this.getZ(), this.getMainHandItem().copy());
             itemEntity.setPickUpDelay(40);
             itemEntity.setThrower(this.getUUID());
             this.getMainHandItem().shrink(1);
-            this.level.addFreshEntity(itemEntity);
+            this.getCommandSenderWorld().addFreshEntity(itemEntity);
         }
     }
 
     public boolean rejectedItem(ItemEntity itemEntity) {
-        if (itemEntity.getThrower() != null) {
-            return itemEntity.getThrower().equals(this.getUUID());
+        if (itemEntity.getOwner() != null) {
+            return itemEntity.getOwner().equals(this.getUUID());
         }
         return false;
     }
@@ -516,10 +515,10 @@ public class OtterEntity extends Animal implements IAnimatable {
                                 this.mob.setXRot(this.rotlerp(this.mob.getXRot(), xRot, 45.0F));
                             }
 
-                            BlockPos wantedPos = new BlockPos(this.wantedX, this.wantedY, this.wantedZ);
-                            BlockState wantedBlockState = this.mob.level.getBlockState(wantedPos);
+                            BlockPos wantedPos = new BlockPos((int) this.wantedX, (int) this.wantedY, (int) this.wantedZ);
+                            BlockState wantedBlockState = this.mob.level().getBlockState(wantedPos);
 
-                            if (d1 > (double) this.mob.maxUpStep && d0 * d0 + d2 * d2 < 4.0F && d1 <= 1.0D && wantedBlockState.getFluidState().isEmpty()) {
+                            if (d1 > (double) this.mob.maxUpStep() && d0 * d0 + d2 * d2 < 4.0F && d1 <= 1.0D && wantedBlockState.getFluidState().isEmpty()) {
                                 this.mob.getJumpControl().jump();
                                 this.mob.setSpeed(speed);
                             }
@@ -600,10 +599,10 @@ public class OtterEntity extends Animal implements IAnimatable {
 
         @Override
         public boolean isStableDestination(BlockPos destination) {
-            if (this.otter.isInWater() && this.level.getBlockState(destination).isAir()) {
-                return !(this.level.getBlockState(destination.below()).isAir() || this.level.getBlockState(destination.below()).getFluidState().is(FluidTags.WATER));
+            if (this.otter.isInWater() && otter.getCommandSenderWorld().getBlockState(destination).isAir()) {
+                return !(otter.getCommandSenderWorld().getBlockState(destination.below()).isAir() || otter.getCommandSenderWorld().getBlockState(destination.below()).getFluidState().is(FluidTags.WATER));
             } else {
-                return !this.level.getBlockState(destination.below()).isAir();
+                return !otter.getCommandSenderWorld().getBlockState(destination.below()).isAir();
             }
         }
     }
@@ -707,7 +706,7 @@ public class OtterEntity extends Animal implements IAnimatable {
 
         @Override
         public boolean canUse() {
-            return OtterEntity.this.isAlive() && OtterEntity.this.needsSurface() && !OtterEntity.this.isOnGround();
+            return OtterEntity.this.isAlive() && OtterEntity.this.needsSurface() && !OtterEntity.this.onGround();
         }
 
         @Override
@@ -723,8 +722,7 @@ public class OtterEntity extends Animal implements IAnimatable {
 
         @Override
         public void tick() {
-            if (this.targetPos == null || !OtterEntity.this.getLevel().getBlockState(new BlockPos(this.targetPos)).isAir()) {
-                if (OtterEntity.this.getMainHandItem().is(CACItems.CLAM.get())) {
+            if (this.targetPos == null || !OtterEntity.this.getCommandSenderWorld().getBlockState(new BlockPos((int) this.targetPos.x, (int) this.targetPos.y, (int) this.targetPos.z)).isAir()) {                if (OtterEntity.this.getMainHandItem().is(CACItems.CLAM.get())) {
                     this.targetPos = LandRandomPos.getPos(OtterEntity.this, 15, 7);
                     this.goingLand = true;
                 } else {
@@ -738,7 +736,7 @@ public class OtterEntity extends Animal implements IAnimatable {
                 OtterEntity.this.move(MoverType.SELF, OtterEntity.this.getDeltaMovement());
 
                 if (this.goingLand) {
-                    if (!OtterEntity.this.isInWater() && OtterEntity.this.isOnGround()) {
+                    if (!OtterEntity.this.isInWater() && OtterEntity.this.onGround()) {
                         this.stop();
                     }
                 } else {
@@ -760,10 +758,10 @@ public class OtterEntity extends Animal implements IAnimatable {
 
         public void tickTimeout() {
             if (this.timeoutTimer % 2 == 0) {
-                ((ServerLevel) OtterEntity.this.getLevel()).sendParticles(ParticleTypes.BUBBLE, OtterEntity.this.getRandomX(0.6D), OtterEntity.this.getY(), OtterEntity.this.getRandomZ(0.6D), 2, 0.0D, 0.1D, 0.0D, 0.0D);
+                ((ServerLevel) OtterEntity.this.getCommandSenderWorld()).sendParticles(ParticleTypes.BUBBLE, OtterEntity.this.getRandomX(0.6D), OtterEntity.this.getY(), OtterEntity.this.getRandomZ(0.6D), 2, 0.0D, 0.1D, 0.0D, 0.0D);
             }
             if (this.timeoutTimer <= 0) {
-                OtterEntity.this.playSound(CACSounds.OTTER_AMBIENT.get(), OtterEntity.this.getSoundVolume(), 0.3F);
+                OtterEntity.this.playSound(CACSounds.OTTER_AMBIENT, OtterEntity.this.getSoundVolume(), 0.3F);
                 OtterEntity.this.rejectFood();
                 this.stop();
             }
@@ -782,7 +780,7 @@ public class OtterEntity extends Animal implements IAnimatable {
             BlockPos airPos = null;
 
             for (BlockPos blockPos : blocksInRadius) {
-                if (OtterEntity.this.level.getBlockState(blockPos).isAir()) {
+                if (OtterEntity.this.getCommandSenderWorld().getBlockState(blockPos).isAir()) {
                     airPos = blockPos;
                     break;
                 }
@@ -802,14 +800,14 @@ public class OtterEntity extends Animal implements IAnimatable {
             if (!OtterEntity.this.getMainHandItem().isEmpty()) {
                 return false;
             } else {
-                List<ItemEntity> itemsInRadius = OtterEntity.this.level.getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
+                List<ItemEntity> itemsInRadius = OtterEntity.this.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
                 return !itemsInRadius.isEmpty();
             }
         }
 
         @Override
         public void tick() {
-            List<ItemEntity> itemsInRadius = OtterEntity.this.level.getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
+            List<ItemEntity> itemsInRadius = OtterEntity.this.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
             ItemStack handStack = OtterEntity.this.getMainHandItem();
             if (handStack.isEmpty() && !itemsInRadius.isEmpty()) {
                 Path path = OtterEntity.this.getNavigation().createPath(itemsInRadius.get(0), 0);
@@ -819,7 +817,7 @@ public class OtterEntity extends Animal implements IAnimatable {
 
         @Override
         public void start() {
-            List<ItemEntity> itemsInRadius = OtterEntity.this.level.getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
+            List<ItemEntity> itemsInRadius = OtterEntity.this.getCommandSenderWorld().getEntitiesOfClass(ItemEntity.class, OtterEntity.this.getBoundingBox().inflate(8.0D, 8.0D, 8.0D), (itemEntity -> OtterEntity.this.wantsToPickUp(itemEntity.getItem()) && !OtterEntity.this.rejectedItem(itemEntity)));
             if (!itemsInRadius.isEmpty()) {
                 Path path = OtterEntity.this.getNavigation().createPath(itemsInRadius.get(0), 0);
                 OtterEntity.this.getNavigation().moveTo(path, 1.0D);

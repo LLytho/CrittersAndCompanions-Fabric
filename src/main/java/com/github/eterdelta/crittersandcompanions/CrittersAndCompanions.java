@@ -8,9 +8,13 @@ import com.github.eterdelta.crittersandcompanions.mixin.CatMixin;
 import com.github.eterdelta.crittersandcompanions.registry.CACEntities;
 import com.github.eterdelta.crittersandcompanions.registry.CACItems;
 import com.github.eterdelta.crittersandcompanions.registry.CACSounds;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.minecraft.network.chat.Component;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.client.renderer.item.ItemProperties;
@@ -18,14 +22,36 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import software.bernie.geckolib3.GeckoLib;
+import software.bernie.geckolib.GeckoLib;
 
 public class CrittersAndCompanions implements ModInitializer, ClientModInitializer {
     public static final String MODID = "crittersandcompanions";
-    public static final CreativeModeTab CREATIVE_TAB = FabricItemGroupBuilder.build(
-            new ResourceLocation(MODID, "items"),
-            () -> new ItemStack(CACItems.PEARL_NECKLACE_1.get())
-    );
+	private static final CreativeModeTab ITEM_GROUP = FabricItemGroup.builder()
+		.icon(() -> new ItemStack(CACItems.PEARL_NECKLACE_1.get()))
+		.title(Component.translatable("itemGroup.crittersandcompanions.items"))
+        .displayItems((context, entries) -> {
+            entries.accept(CACItems.CLAM.get());
+            entries.accept(CACItems.PEARL.get());
+            entries.accept(CACItems.PEARL_NECKLACE_1.get());
+            entries.accept(CACItems.PEARL_NECKLACE_2.get());
+            entries.accept(CACItems.PEARL_NECKLACE_3.get());
+            entries.accept(CACItems.DUMBO_OCTOPUS_BUCKET.get());
+            entries.accept(CACItems.KOI_FISH_BUCKET.get());
+            entries.accept(CACItems.SEA_BUNNY_BUCKET.get());
+            entries.accept(CACItems.DIAMOND_DRAGONFLY_ARMOR.get());
+            entries.accept(CACItems.GOLD_DRAGONFLY_ARMOR.get());
+            entries.accept(CACItems.IRON_DRAGONFLY_ARMOR.get());
+            entries.accept(CACItems.DRAGONFLY_SPAWN_EGG.get());
+            entries.accept(CACItems.FERRET_SPAWN_EGG.get());
+            entries.accept(CACItems.DUMBO_OCTOPUS_SPAWN_EGG.get());
+            entries.accept(CACItems.KOI_FISH_SPAWN_EGG.get());
+            entries.accept(CACItems.LEAF_INSECT_SPAWN_EGG.get());
+            entries.accept(CACItems.OTTER_SPAWN_EGG.get());
+            entries.accept(CACItems.RED_PANDA_SPAWN_EGG.get());
+            entries.accept(CACItems.SEA_BUNNY_SPAWN_EGG.get());
+            entries.accept(CACItems.SHIMA_ENAGA_SPAWN_EGG.get());
+        })
+		.build();
 
     @Override
     public void onInitializeClient() {
@@ -37,10 +63,10 @@ public class CrittersAndCompanions implements ModInitializer, ClientModInitializ
     public void onInitialize() {
         GeckoLib.initialize();
 //        final IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
-
         CACEntities.ENTITIES.register();
         CACItems.ITEMS.register();
-        CACSounds.SOUNDS.register();
+        CACSounds.register();
+        Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, new ResourceLocation(MODID, "items"), ITEM_GROUP);
 
         // TODO
         SpawnHandler.registerBiomeModifications();

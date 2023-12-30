@@ -21,19 +21,17 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
-public class LeafInsectEntity extends PathfinderMob implements IAnimatable {
+public class LeafInsectEntity extends PathfinderMob implements GeoEntity {
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(LeafInsectEntity.class, EntityDataSerializers.INT);
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     protected BlockPos activeJukebox;
     protected boolean dancing;
 
@@ -76,7 +74,7 @@ public class LeafInsectEntity extends PathfinderMob implements IAnimatable {
 
     @Override
     public void aiStep() {
-        if (this.activeJukebox == null || !this.activeJukebox.closerToCenterThan(this.position(), 5.0D) || !this.level.getBlockState(this.activeJukebox).is(Blocks.JUKEBOX)) {
+        if (this.activeJukebox == null || !this.activeJukebox.closerToCenterThan(this.position(), 5.0D) || !this.getCommandSenderWorld().getBlockState(this.activeJukebox).is(Blocks.JUKEBOX)) {
             this.activeJukebox = null;
             this.dancing = false;
         }
@@ -91,12 +89,12 @@ public class LeafInsectEntity extends PathfinderMob implements IAnimatable {
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return CACSounds.LEAF_INSECT_HURT.get();
+        return CACSounds.LEAF_INSECT_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return CACSounds.LEAF_INSECT_DEATH.get();
+        return CACSounds.LEAF_INSECT_DEATH;
     }
 
     @Override
@@ -105,25 +103,25 @@ public class LeafInsectEntity extends PathfinderMob implements IAnimatable {
         return spawnGroupData;
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends GeoAnimatable> PlayState predicate(AnimationState<E> event) {
         if (this.isDancing()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("leaf_insect_dance", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("leaf_insect_dance", Animation.LoopType.LOOP));
         } else if (event.isMoving()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("leaf_insect_walk", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("leaf_insect_walk", Animation.LoopType.LOOP));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("leaf_insect_idle", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("leaf_insect_idle", Animation.LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "predicate_controller", 4, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public int getVariant() {

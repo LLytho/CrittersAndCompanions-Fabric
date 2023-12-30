@@ -37,23 +37,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Random;
 
-public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatable {
+public class SeaBunnyEntity extends WaterAnimal implements Bucketable, GeoEntity {
     private static final EntityDataAccessor<Boolean> CLIMBING = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> FROM_BUCKET = SynchedEntityData.defineId(SeaBunnyEntity.class, EntityDataSerializers.BOOLEAN);
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public SeaBunnyEntity(EntityType<? extends SeaBunnyEntity> entityType, Level level) {
         super(entityType, level);
@@ -147,12 +147,12 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return CACSounds.SEA_BUNNY_HURT.get();
+        return CACSounds.SEA_BUNNY_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return CACSounds.SEA_BUNNY_DEATH.get();
+        return CACSounds.SEA_BUNNY_DEATH;
     }
 
     @Override
@@ -176,14 +176,14 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
     @Override
     public void tick() {
         super.tick();
-        if (!this.level.isClientSide()) {
+        if (!this.getCommandSenderWorld().isClientSide()) {
             this.setClimbing(this.horizontalCollision && this.getNavigation().isInProgress());
         }
     }
 
     @Override
     public float getWalkTargetValue(BlockPos blockPos) {
-        return this.level.getBlockState(blockPos).getFluidState().isEmpty() ? 1.0F : 5.0F;
+        return this.getCommandSenderWorld().getBlockState(blockPos).getFluidState().isEmpty() ? 1.0F : 5.0F;
     }
 
     @Override
@@ -204,23 +204,23 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
         return Bucketable.bucketMobPickup(player, interactionHand, this).orElse(super.mobInteract(player, interactionHand));
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if (this.animationSpeed > 0.03F) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny_move", ILoopType.EDefaultLoopTypes.LOOP));
+    private <E extends GeoAnimatable> PlayState predicate(AnimationState<E> event) {
+        if (this.walkAnimation.speed() > 0.03F) {
+            event.getController().setAnimation(RawAnimation.begin().then("sea_bunny_move", Animation.LoopType.LOOP));
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("sea_bunny", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("sea_bunny", Animation.LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "predicate_controller", 3, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public boolean isClimbing() {
@@ -283,7 +283,7 @@ public class SeaBunnyEntity extends WaterAnimal implements Bucketable, IAnimatab
             Vec3 randomPos = RandomPos.generateRandomPos(this.mob, () -> {
                 BlockPos blockPos = RandomPos.generateRandomDirection(this.mob.getRandom(), 10, 7);
                 BlockPos blockPos1 = RandomPos.generateRandomPosTowardDirection(this.mob, 10, this.mob.getRandom(), blockPos);
-                return RandomPos.moveUpOutOfSolid(blockPos1, this.mob.level.getMaxBuildHeight(), (blockPos2) -> GoalUtils.isSolid(this.mob, blockPos2));
+                return RandomPos.moveUpOutOfSolid(blockPos1, this.mob.level().getMaxBuildHeight(), (blockPos2) -> GoalUtils.isSolid(this.mob, blockPos2));
             });
             return randomPos;
         }

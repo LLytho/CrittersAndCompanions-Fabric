@@ -4,12 +4,13 @@ import com.github.eterdelta.crittersandcompanions.CrittersAndCompanions;
 import com.github.eterdelta.crittersandcompanions.entity.OtterEntity;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.processor.IBone;
-import software.bernie.geckolib3.model.AnimatedGeoModel;
-import software.bernie.geckolib3.model.provider.data.EntityModelData;
+import software.bernie.geckolib.constant.DataTickets;
+import software.bernie.geckolib.core.animatable.model.CoreGeoBone;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.model.data.EntityModelData;
 
-public class OtterModel extends AnimatedGeoModel<OtterEntity> {
+public class OtterModel<E extends OtterEntity> extends GeoModel<E> {
     private static final ResourceLocation[] MODELS = new ResourceLocation[]{
             new ResourceLocation(CrittersAndCompanions.MODID, "geo/otter.geo.json"),
             new ResourceLocation(CrittersAndCompanions.MODID, "geo/baby_otter.geo.json")};
@@ -36,14 +37,14 @@ public class OtterModel extends AnimatedGeoModel<OtterEntity> {
     }
 
     @Override
-    public void setCustomAnimations(OtterEntity entity, int uniqueID, AnimationEvent customPredicate) {
+    public void setCustomAnimations(E entity, long uniqueID, AnimationState<E> customPredicate) {
         super.setCustomAnimations(entity, uniqueID, customPredicate);
-        IBone rotBone = this.getAnimationProcessor().getBone(entity.isInWater() ? "main" : "head");
+        CoreGeoBone rotBone = this.getAnimationProcessor().getBone(entity.isInWater() ? "main" : "head");
 
-        EntityModelData extraData = (EntityModelData) customPredicate.getExtraDataOfType(EntityModelData.class).get(0);
+        EntityModelData extraData = (EntityModelData) customPredicate.getData(DataTickets.ENTITY_MODEL_DATA);
         if (!entity.isEating() && !entity.isFloating()) {
-            rotBone.setRotationX(extraData.headPitch * ((float) Math.PI / 180.0F));
-            rotBone.setRotationY(extraData.netHeadYaw * ((float) Math.PI / 180.0F));
+            rotBone.setRotX(extraData.headPitch() * ((float) Math.PI / 180.0F));
+            rotBone.setRotY(extraData.netHeadYaw() * ((float) Math.PI / 180.0F));
         }
     }
 }

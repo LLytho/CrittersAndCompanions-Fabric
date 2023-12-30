@@ -9,15 +9,15 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.renderers.geo.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
-public class DumboOctopusRenderer extends GeoEntityRenderer<DumboOctopusEntity> {
+public class DumboOctopusRenderer<E extends DumboOctopusEntity> extends GeoEntityRenderer<E> {
     public DumboOctopusRenderer(EntityRendererProvider.Context context) {
         super(context, new DumboOctopusModel());
     }
 
     @Override
-    public RenderType getRenderType(DumboOctopusEntity animatable, float partialTicks, PoseStack stack, @Nullable MultiBufferSource renderTypeBuffer, @Nullable VertexConsumer vertexBuilder, int packedLightIn, ResourceLocation textureLocation) {
+    public RenderType getRenderType(E animatable, ResourceLocation textureLocation, @Nullable MultiBufferSource renderTypeBuffer, float partialTicks) {
         return RenderType.entityCutoutNoCull(this.getTextureLocation(animatable));
     }
 }

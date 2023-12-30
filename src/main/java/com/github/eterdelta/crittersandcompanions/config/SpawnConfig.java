@@ -8,6 +8,8 @@ import com.google.gson.*;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BiomeTags;
@@ -47,7 +49,7 @@ public class SpawnConfig {
         for (var entry : CACEntities.ENTITIES.getEntries()) {
             Collection<SpawnEntry> defaultSpawnEntries = defaultEntries.get(entry.get());
             if (defaultSpawnEntries.isEmpty()) {
-                LOGGER.warn("[CaC] No default spawn entries for entity <" + Registry.ENTITY_TYPE.getKey(entry.get()) + ">");
+                LOGGER.warn("[CaC] No default spawn entries for entity <" + BuiltInRegistries.ENTITY_TYPE.getKey(entry.get()) + ">");
             }
             var filename = entry.id().getPath() + ".json";
             var filePath = directory.resolve(filename);
@@ -57,11 +59,11 @@ public class SpawnConfig {
                 Collection<SpawnEntry> spawnEntries = loadEntries(filePath);
                 spawns.putAll(entityType, spawnEntries);
             } catch (NoSuchFileException e) {
-                LOGGER.warn("[CaC] No spawn config found for entity <" + Registry.ENTITY_TYPE.getKey(entry.get()) + ">. Creating default config file.");
+                LOGGER.warn("[CaC] No spawn config found for entity <" + BuiltInRegistries.ENTITY_TYPE.getKey(entry.get()) + ">. Creating default config file.");
                 spawns.putAll(entry.get(), defaultSpawnEntries);
                 writeDefaultEntries(filePath, defaultSpawnEntries);
             } catch (Exception e) {
-                LOGGER.error("[CaC] Failed to load spawn config for entity <" + Registry.ENTITY_TYPE.getKey(entry.get()) + ">: " + e.getMessage());
+                LOGGER.error("[CaC] Failed to load spawn config for entity <" + BuiltInRegistries.ENTITY_TYPE.getKey(entry.get()) + ">: " + e.getMessage());
                 spawns.putAll(entry.get(), defaultSpawnEntries);
                 writeDefaultEntries(filePath, defaultSpawnEntries);
             }
@@ -132,10 +134,10 @@ public class SpawnConfig {
         for (JsonElement b : entryObj.getAsJsonArray("biomes")) {
             String unknownString = b.getAsJsonPrimitive().getAsString();
             if (unknownString.startsWith("#")) {
-                TagKey<Biome> tag = TagKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(unknownString.substring(1)));
+                TagKey<Biome> tag = TagKey.create(Registries.BIOME, new ResourceLocation(unknownString.substring(1)));
                 biomeTags.add(tag);
             } else {
-                ResourceKey<Biome> key = ResourceKey.create(Registry.BIOME_REGISTRY, new ResourceLocation(unknownString));
+                ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME, new ResourceLocation(unknownString));
                 biomes.add(key);
             }
         }

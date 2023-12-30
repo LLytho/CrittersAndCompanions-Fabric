@@ -6,13 +6,15 @@ import com.github.eterdelta.crittersandcompanions.platform.DeferredRegister;
 import com.github.eterdelta.crittersandcompanions.platform.RegistryObject;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 
 public class CACEntities {
-    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Registry.ENTITY_TYPE, CrittersAndCompanions.MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, CrittersAndCompanions.MODID);
 
     public static final RegistryObject<EntityType<DragonflyEntity>> DRAGONFLY = ENTITIES.register("dragonfly", () -> create(DragonflyEntity::new, MobCategory.AMBIENT, 0.8F, 0.2F));
     public static final RegistryObject<EntityType<DumboOctopusEntity>> DUMBO_OCTOPUS = ENTITIES.register("dumbo_octopus", () -> create(DumboOctopusEntity::new, MobCategory.CREATURE, 0.4F, 0.4F));

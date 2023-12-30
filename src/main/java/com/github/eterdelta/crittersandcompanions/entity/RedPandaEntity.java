@@ -25,22 +25,20 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.gameevent.GameEvent;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+import software.bernie.geckolib.animatable.GeoEntity;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
-public class RedPandaEntity extends TamableAnimal implements IAnimatable {
+public class RedPandaEntity extends TamableAnimal implements GeoEntity {
     protected static final List<EntityType<? extends Mob>> SCAREABLES = new ArrayList<>(Arrays.asList(
             EntityType.BEE,
             EntityType.ENDERMAN,
@@ -55,7 +53,7 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
     ));
     private static final EntityDataAccessor<Boolean> SLEEPING = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> ALERT = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private LivingEntity alerter;
 
     public RedPandaEntity(EntityType<? extends RedPandaEntity> entityType, Level level) {
@@ -130,20 +128,20 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
                     if (!player.getAbilities().instabuild) {
                         handStack.shrink(1);
                     }
-                    if (!this.level.isClientSide()) {
+                    if (!this.getCommandSenderWorld().isClientSide()) {
                         if (this.random.nextInt(10) == 0 /*&& !ForgeEventFactory.onAnimalTame(this, player)*/) {
                             this.tame(player);
-                            this.level.broadcastEntityEvent(this, (byte) 7);
+                            this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 7);
                         } else {
-                            this.level.broadcastEntityEvent(this, (byte) 6);
+                            this.getCommandSenderWorld().broadcastEntityEvent(this, (byte) 6);
                         }
                     }
-                    return InteractionResult.sidedSuccess(this.level.isClientSide());
+                    return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
                 }
             } else if (this.isTame() && this.isOwnedBy(player)) {
                 if (!this.isFood(handStack)) {
                     this.setOrderedToSit(!this.isOrderedToSit());
-                    return InteractionResult.sidedSuccess(this.level.isClientSide());
+                    return InteractionResult.sidedSuccess(this.getCommandSenderWorld().isClientSide());
                 } else if (this.getHealth() < this.getMaxHealth()) {
                     this.gameEvent(GameEvent.EAT, this);
                     this.heal(2.0F);
@@ -165,17 +163,17 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.isSleeping() ? null : CACSounds.RED_PANDA_AMBIENT.get();
+        return this.isSleeping() ? null : CACSounds.RED_PANDA_AMBIENT;
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return CACSounds.RED_PANDA_HURT.get();
+        return CACSounds.RED_PANDA_HURT;
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return CACSounds.RED_PANDA_DEATH.get();
+        return CACSounds.RED_PANDA_DEATH;
     }
 
     @Override
@@ -183,7 +181,7 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
         spawnGroupData = super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData, p_146750_);
         if (mobSpawnType.equals(MobSpawnType.SPAWNER) && ((AgeableMobGroupData) spawnGroupData).getGroupSize() >= 2 && this.random.nextFloat() <= 0.4F) {
             for (int i = 0; i < this.random.nextInt(1, 3); i++) {
-                RedPandaEntity baby = CACEntities.RED_PANDA.get().create(this.level);
+                RedPandaEntity baby = CACEntities.RED_PANDA.get().create(this.getCommandSenderWorld());
                 baby.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), 0.0F);
                 baby.setBaby(true);
                 levelAccessor.addFreshEntity(baby);
@@ -192,33 +190,33 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
         return spawnGroupData;
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
+    private <E extends GeoAnimatable> PlayState predicate(AnimationState<E> event) {
         if (this.isAlert()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_angry", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+            event.getController().setAnimation(RawAnimation.begin().then("red_panda_angry", Animation.LoopType.PLAY_ONCE));
         } else if (this.isInSittingPose()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_sit", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("red_panda_sit", Animation.LoopType.LOOP));
         } else if (this.isSleeping()) {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_sleeping", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("red_panda_sleeping", Animation.LoopType.LOOP));
         } else if (event.isMoving()) {
-            if (this.animationSpeed >= 0.8F) {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_run", ILoopType.EDefaultLoopTypes.LOOP));
+            if (this.walkAnimation.speed() >= 0.8F) {
+                event.getController().setAnimation(RawAnimation.begin().then("red_panda_run", Animation.LoopType.LOOP));
             } else {
-                event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_walk", ILoopType.EDefaultLoopTypes.LOOP));
+                event.getController().setAnimation(RawAnimation.begin().then("red_panda_walk", Animation.LoopType.LOOP));
             }
         } else {
-            event.getController().setAnimation(new AnimationBuilder().addAnimation("red_panda_idle", ILoopType.EDefaultLoopTypes.LOOP));
+            event.getController().setAnimation(RawAnimation.begin().then("red_panda_idle", Animation.LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
 
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController<>(this, "controller", 4, this::predicate));
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "predicate_controller", 3, this::predicate));
     }
 
     @Override
-    public AnimationFactory getFactory() {
-        return this.factory;
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return this.cache;
     }
 
     public boolean isSleeping() {
@@ -280,7 +278,7 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
                 --this.countdown;
                 return false;
             } else {
-                return RedPandaEntity.this.level.isDay();
+                return RedPandaEntity.this.getCommandSenderWorld().isDay();
             }
         }
 
@@ -308,9 +306,9 @@ public class RedPandaEntity extends TamableAnimal implements IAnimatable {
         @Override
         public boolean canUse() {
             if (!RedPandaEntity.this.isSleeping()) {
-                List<LivingEntity> nearAlerters = RedPandaEntity.this.level.getEntitiesOfClass(LivingEntity.class, RedPandaEntity.this.getBoundingBox().inflate(4.0D),
+                List<LivingEntity> nearAlerters = RedPandaEntity.this.getCommandSenderWorld().getEntitiesOfClass(LivingEntity.class, RedPandaEntity.this.getBoundingBox().inflate(4.0D),
                         (livingEntity) -> RedPandaEntity.this.isTame() ? SCAREABLES.contains(livingEntity.getType()) && ((Mob) livingEntity).isAggressive() : livingEntity instanceof Player);
-                LivingEntity nearestAlerter = RedPandaEntity.this.level.getNearestEntity(nearAlerters, TargetingConditions.forNonCombat().range(4.0D), RedPandaEntity.this, RedPandaEntity.this.getX(), RedPandaEntity.this.getY(), RedPandaEntity.this.getZ());
+                LivingEntity nearestAlerter = RedPandaEntity.this.getCommandSenderWorld().getNearestEntity(nearAlerters, TargetingConditions.forNonCombat().range(4.0D), RedPandaEntity.this, RedPandaEntity.this.getX(), RedPandaEntity.this.getY(), RedPandaEntity.this.getZ());
 
                 if (nearestAlerter != RedPandaEntity.this.alerter) {
                     RedPandaEntity.this.alerter = nearestAlerter;
